@@ -27,14 +27,14 @@ export default function App() {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row font-body transition-colors duration-300">
+        <div className="min-h-screen bg-background text-foreground flex flex-col xl:flex-row font-body transition-colors duration-300">
 
-            {/* Sidebar (Desktop) / Bottom Nav (Mobile) */}
-            <aside className={`w-full bg-sidebar border-r border-border flex flex-col fixed md:relative bottom-0 md:h-screen z-50 order-2 md:order-1 transition-all duration-300 ${sidebarCollapsed ? 'md:w-20' : 'md:w-64'
+            {/* Sidebar (Desktop) / Bottom Nav (Mobile/Tablet) */}
+            <aside className={`w-full bg-sidebar border-r border-border flex flex-col fixed xl:relative bottom-0 xl:h-screen z-50 order-2 xl:order-1 transition-all duration-300 ${sidebarCollapsed ? 'xl:w-20' : 'xl:w-64'
                 }`}>
 
                 {/* Logo Area - Centralizada */}
-                <div className="hidden md:flex flex-col items-center justify-center p-6 border-b border-border relative">
+                <div className="hidden xl:flex flex-col items-center justify-center p-6 border-b border-border relative">
                     <img
                         src={theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'}
                         alt="Insideview 360"
@@ -51,7 +51,7 @@ export default function App() {
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 p-3 md:p-4 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible bg-sidebar md:bg-transparent justify-around md:justify-start pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-4 px-6 md:px-4">
+                <nav className="flex-1 p-3 xl:p-4 flex flex-row xl:flex-col gap-2 overflow-x-auto xl:overflow-visible bg-sidebar xl:bg-transparent justify-around xl:justify-start pb-[calc(1rem+env(safe-area-inset-bottom))] xl:pb-4 px-6 xl:px-4">
                     {[
                         { id: Tab.REGISTRATION, label: 'Nova Visita', icon: Camera },
                         { id: Tab.SUMMARY, label: 'Visitas', icon: LayoutDashboard },
@@ -61,22 +61,22 @@ export default function App() {
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
                             className={`
-                        flex flex-col md:flex-row items-center gap-1 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-lg text-[10px] md:text-sm font-medium transition-all w-auto md:w-full
+                        flex flex-col xl:flex-row items-center gap-1 xl:gap-3 px-3 xl:px-4 py-2 xl:py-3 rounded-lg text-[10px] xl:text-sm font-medium transition-all w-auto xl:w-full
                         ${activeTab === item.id
-                                    ? 'bg-sidebar-active text-sidebar-activeFg border-b-2 md:border-b-0 md:border-l-4 border-sidebar-border shadow-sm'
+                                    ? 'bg-sidebar-active text-sidebar-activeFg border-b-2 xl:border-b-0 xl:border-l-4 border-sidebar-border shadow-sm'
                                     : 'text-sidebar-fg hover:bg-accent hover:text-foreground'
                                 }
                     `}
                             title={item.label}
                         >
-                            <item.icon className="size-5 md:size-5" />
+                            <item.icon className="size-5 xl:size-5" />
                             <span className={sidebarCollapsed ? 'hidden' : 'inline'}>{item.label}</span>
                         </button>
                     ))}
                 </nav>
 
                 {/* Powered by Footer */}
-                <div className="hidden md:flex p-4 border-t border-border flex-col items-center gap-2">
+                <div className="hidden xl:flex p-4 border-t border-border flex-col items-center gap-2">
                     <span className={`text-[10px] font-semibold text-muted-foreground tracking-wider transition-opacity ${sidebarCollapsed ? 'opacity-0' : 'opacity-100'
                         }`}>POWERED BY</span>
                     <img
@@ -89,17 +89,17 @@ export default function App() {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto h-screen relative order-1 md:order-2">
+            <main className="flex-1 overflow-y-auto h-screen relative order-1 xl:order-2">
                 {/* TopBar Flutuante com Blur Effect */}
                 <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50">
-                    <div className="flex items-center justify-between px-4 md:px-8 lg:px-12 py-3 md:py-4">
-                        {/* Logo Mobile (apenas em mobile) */}
-                        <div className="flex md:hidden items-center gap-2">
+                    <div className="flex items-center justify-between px-4 md:px-8 lg:px-12 py-3 xl:py-4">
+                        {/* Logo Mobile (mobile + tablet) */}
+                        <div className="flex xl:hidden items-center gap-2">
                             <img src={theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'} alt="Insideview 360" className="h-8 md:h-10" />
                         </div>
 
                         {/* Título da Página (Desktop) */}
-                        <h1 className="hidden md:block text-xl lg:text-2xl font-bold text-foreground">
+                        <h1 className="hidden xl:block text-2xl font-bold text-foreground">
                             {activeTab === Tab.REGISTRATION ? 'Nova Visita' :
                                 activeTab === Tab.SUMMARY ? 'Visitas' :
                                     activeTab === Tab.LISTINGS ? 'Relatórios' : ''}
@@ -139,7 +139,7 @@ export default function App() {
                     </div>
                 </header>
 
-                <div className="max-w-7xl mx-auto p-4 md:p-8 lg:p-12 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-12">
+                <div className="max-w-7xl mx-auto p-4 md:p-8 lg:p-12 pb-[calc(6rem+env(safe-area-inset-bottom))] xl:pb-12">
                     {renderContent()}
                 </div>
             </main>

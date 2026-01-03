@@ -1,138 +1,124 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  /* Layer 1: Primitives */
+@theme {
   --radius: 0.5rem;
 
-  /* Light Mode Audit: Using Slate Palette for Crispness */
+  /* Basic Colors mapping from CSS variables */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
 
-  /* Background: Slate 50 - Provides slight separation from white cards */
+  /* Custom Sidebar Colors */
+  --color-sidebar: var(--sidebar-bg);
+  --color-sidebar-fg: var(--sidebar-fg);
+  --color-sidebar-active: var(--sidebar-item-active-bg);
+  --color-sidebar-active-fg: var(--sidebar-item-active-fg);
+  --color-sidebar-border: var(--sidebar-item-active-border);
+
+  /* Status Colors */
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-error: hsl(var(--error));
+  --color-error-foreground: hsl(var(--error-foreground));
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+
+  /* Fonts */
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Noto Sans", sans-serif;
+}
+
+:root {
+  --radius: 0.5rem;
   --background: 210 40% 98%;
-
-  /* Foreground: Slate 900 */
   --foreground: 222 47% 11%;
-
-  /* Cards: Pure White for "Pop" */
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
-
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
-
-  /* Primary: Intense Blue/Cyan for better visibility on white */
   --primary: 199 89% 48%;
-  /* Sky 600 approx */
   --primary-foreground: 0 0% 100%;
-
-  /* Secondary: Slate 100 */
   --secondary: 210 40% 96.1%;
   --secondary-foreground: 222 47% 11%;
-
-  /* Muted: Slate 100/200 mix for visibility */
   --muted: 210 40% 96.1%;
   --muted-foreground: 215 16% 47%;
-
-  /* Accent: Slate 100 (Hover states) */
   --accent: 210 40% 96.1%;
   --accent-foreground: 222 47% 11%;
-
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-
-  /* Borders: Slate 200 - Visible but subtle */
   --border: 214 32% 91%;
   --input: 214 32% 91%;
   --ring: 199 89% 48%;
 
-  /* Sidebar Light: White with Slate text */
   --sidebar-bg: #ffffff;
   --sidebar-fg: #64748b;
   --sidebar-item-active-bg: #f1f5f9;
-  /* Slate 100 */
   --sidebar-item-active-fg: #0284c7;
-  /* Sky 600 */
   --sidebar-item-active-border: #0284c7;
 
-  /* Status Colors Light */
   --success: 142 71% 45%;
   --success-foreground: 0 0% 100%;
-  --success-bg: 142 76% 95%;
   --warning: 38 92% 50%;
   --warning-foreground: 0 0% 100%;
-  --warning-bg: 38 92% 95%;
   --error: 0 72% 51%;
   --error-foreground: 0 0% 100%;
-  --error-bg: 0 84% 95%;
   --info: 199 89% 48%;
   --info-foreground: 0 0% 100%;
-  --info-bg: 199 89% 95%;
 }
 
 .dark {
-  /* Dark Mode (Inove AI Theme) */
-  /* HSL Values for proper Tailwind variable mapping */
   --background: 225 18% 9%;
-  /* #13151a */
   --foreground: 0 0% 100%;
-  /* #ffffff */
-
   --card: 223 22% 14%;
-  /* #1c202a */
   --card-foreground: 0 0% 100%;
-  /* #ffffff */
-
   --popover: 222 18% 18%;
-  /* #252a36 */
   --popover-foreground: 0 0% 100%;
-
   --primary: 187 94% 43%;
-  /* #06b6d4 */
   --primary-foreground: 0 0% 100%;
-
   --secondary: 222 19% 22%;
-  /* #2d3342 */
   --secondary-foreground: 0 0% 100%;
-
   --muted: 222 19% 22%;
-  /* #2d3342 */
   --muted-foreground: 215 20% 65%;
-  /* #94a3b8 */
-
   --accent: 222 19% 22%;
-  /* #2d3342 */
   --accent-foreground: 0 0% 100%;
-
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-
   --border: 222 19% 22%;
-  /* #2d3342 */
   --input: 222 19% 22%;
-  /* #2d3342 */
   --ring: 187 94% 43%;
 
-  /* Sidebar Dark */
   --sidebar-bg: #1c202a;
   --sidebar-fg: #94a3b8;
   --sidebar-item-active-bg: #2d3342;
   --sidebar-item-active-fg: #06b6d4;
   --sidebar-item-active-border: #06b6d4;
 
-  /* Status Colors Dark */
   --success: 142 71% 45%;
   --success-foreground: 142 71% 95%;
-  --success-bg: 142 71% 45% / 0.1;
   --warning: 38 92% 50%;
   --warning-foreground: 38 92% 95%;
-  --warning-bg: 38 92% 50% / 0.1;
   --error: 0 84% 60%;
   --error-foreground: 0 84% 95%;
-  --error-bg: 0 84% 60% / 0.1;
   --info: 199 89% 48%;
   --info-foreground: 199 89% 95%;
-  --info-bg: 199 89% 48% / 0.1;
 }
 
 @layer base {

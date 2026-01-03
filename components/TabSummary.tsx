@@ -200,15 +200,15 @@ export default function TabSummary() {
 
             {/* Advanced Filters Area */}
             <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                     {/* Search Text */}
                     <div className="relative">
                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                             <Search className="size-4" />
                         </div>
                         <Input
-                            placeholder="Buscar por código ou endereço..."
-                            className="pl-9"
+                            placeholder="Buscar código ou endereço..."
+                            className="pl-9 h-11 md:h-12"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -222,7 +222,7 @@ export default function TabSummary() {
                         <Select
                             value={filterAgency}
                             onChange={(e) => setFilterAgency(e.target.value)}
-                            className="pl-9"
+                            className="pl-9 h-11 md:h-12"
                         >
                             <option value="">Todas as Imobiliárias</option>
                             {agencies.map(a => (
@@ -231,42 +231,45 @@ export default function TabSummary() {
                         </Select>
                     </div>
 
-                    {/* Date Start */}
-                    <div className="relative">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
-                            <span className="text-xs font-bold">DE</span>
+                    {/* Date Filters Grid (2 cols on mobile) */}
+                    <div className="grid grid-cols-2 gap-3 md:contents">
+                        {/* Date Start */}
+                        <div className="relative lg:col-span-1">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
+                                <span className="text-[10px] font-bold">DE</span>
+                            </div>
+                            <Input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="pl-9 h-11 md:h-12 text-xs md:text-sm"
+                            />
                         </div>
-                        <Input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="pl-9"
-                        />
-                    </div>
 
-                    {/* Date End */}
-                    <div className="relative">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
-                            <span className="text-xs font-bold">ATÉ</span>
+                        {/* Date End */}
+                        <div className="relative lg:col-span-1">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
+                                <span className="text-[10px] font-bold">ATÉ</span>
+                            </div>
+                            <Input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="pl-10 h-11 md:h-12 text-xs md:text-sm"
+                            />
                         </div>
-                        <Input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="pl-10"
-                        />
                     </div>
                 </div>
 
                 {/* Status Filter Tabs & Action Buttons */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border/50 pb-4">
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-4">
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
                         {(['all', 'realizada', 'pendente', 'cancelada'] as const).map(status => (
                             <button
                                 key={status}
                                 onClick={() => setStatusFilter(status)}
                                 className={`
-                                flex h-9 shrink-0 items-center justify-center rounded-lg px-4 text-sm font-medium transition-colors border
+                                flex h-9 shrink-0 items-center justify-center rounded-lg px-3 md:px-4 text-xs md:text-sm font-medium transition-colors border
                                 ${statusFilter === status
                                         ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20'
                                         : 'bg-card text-muted-foreground border-border hover:bg-accent hover:text-foreground'
@@ -278,21 +281,21 @@ export default function TabSummary() {
                         ))}
                     </div>
 
-                    <div className="flex gap-3 shrink-0">
-                        <Button variant="outline" size="sm" onClick={loadVisits} disabled={loading} className="h-9">
+                    <div className="flex gap-3 w-full sm:w-auto">
+                        <Button variant="outline" size="sm" onClick={loadVisits} disabled={loading} className="h-9 flex-1 sm:flex-none">
                             <RefreshCw className={`size-3.5 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                            Atualizar
+                            <span className="inline">Atualizar</span>
                         </Button>
-                        <Button size="sm" onClick={handleExportCSV} className="h-9">
+                        <Button size="sm" onClick={handleExportCSV} className="h-9 flex-1 sm:flex-none">
                             <Download className="size-3.5 mr-2" />
-                            Exportar CSV
+                            <span className="inline">Exportar</span>
                         </Button>
                     </div>
                 </div>
             </div>
 
-            {/* MOBILE VIEW: Card Grid (Hidden on md and up) */}
-            <div className="md:hidden flex flex-col gap-4">
+            {/* MOBILE VIEW: Card Grid (Hidden on xl and up) */}
+            <div className="xl:hidden flex flex-col gap-4">
                 {loading ? (
                     <div className="text-center py-12 text-muted-foreground">Carregando dados...</div>
                 ) : currentItems.length === 0 ? (
@@ -353,7 +356,7 @@ export default function TabSummary() {
             </div>
 
             {/* DESKTOP VIEW: Table (Hidden on small screens) */}
-            <div className="hidden md:flex rounded-xl border border-border bg-card shadow-sm overflow-hidden flex-col">
+            <div className="hidden xl:flex rounded-xl border border-border bg-card shadow-sm overflow-hidden flex-col">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[1000px] border-collapse text-left">
                         <thead className="bg-muted/50 border-b border-border">

@@ -119,9 +119,9 @@ export default function TabListings() {
         <div className="w-full flex flex-col gap-6 animate-in fade-in duration-500">
 
             {/* Filter Card */}
-            <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
-                <div className="flex flex-wrap items-end gap-6">
-                    <div className="flex-1 min-w-[280px]">
+            <div className="bg-card rounded-xl p-5 md:p-6 border border-border shadow-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-end gap-4 md:gap-6">
+                    <div className="sm:col-span-2 lg:col-span-1">
                         <label className="block text-sm font-semibold mb-2 text-foreground flex items-center gap-2">
                             <Building2 className="size-4 text-primary" />
                             Imobiliária
@@ -129,6 +129,7 @@ export default function TabListings() {
                         <Select
                             value={selectedAgency}
                             onChange={(e) => setSelectedAgency(e.target.value)}
+                            className="h-11 md:h-12"
                         >
                             <option value="" disabled>Selecione a Imobiliária</option>
                             <option value="all">Todas as Imobiliárias</option>
@@ -138,127 +139,161 @@ export default function TabListings() {
                         </Select>
                     </div>
 
-                    <div className="flex-1 min-w-[140px]">
-                        <label className="block text-sm font-semibold mb-2 text-foreground flex items-center gap-2">
-                            <Calendar className="size-4 text-primary" />
-                            Mês
-                        </label>
-                        <Select
-                            value={selectedMonth}
-                            onChange={(e) => setSelectedMonth(e.target.value)}
-                        >
-                            <option value="" disabled>Selecione o mês</option>
-                            {months.map(m => (
-                                <option key={m.value} value={m.value}>{m.label}</option>
-                            ))}
-                        </Select>
+                    <div className="grid grid-cols-2 gap-4 sm:contents">
+                        <div className="lg:col-span-1">
+                            <label className="block text-sm font-semibold mb-2 text-foreground flex items-center gap-2">
+                                <Calendar className="size-4 text-primary" />
+                                Mês
+                            </label>
+                            <Select
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(e.target.value)}
+                                className="h-11 md:h-12"
+                            >
+                                <option value="" disabled>Selecione o mês</option>
+                                {months.map(m => (
+                                    <option key={m.value} value={m.value}>{m.label}</option>
+                                ))}
+                            </Select>
+                        </div>
+
+                        <div className="lg:col-span-1">
+                            <label className="block text-sm font-semibold mb-2 text-foreground flex items-center gap-2">
+                                <Calendar className="size-4 text-primary" />
+                                Ano
+                            </label>
+                            <Select
+                                value={selectedYear}
+                                onChange={(e) => setSelectedYear(e.target.value)}
+                                className="h-11 md:h-12"
+                            >
+                                <option value="" disabled>Selecione o ano</option>
+                                {years.map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </Select>
+                        </div>
                     </div>
 
-                    <div className="flex-1 min-w-[140px]">
-                        <label className="block text-sm font-semibold mb-2 text-foreground flex items-center gap-2">
-                            <Calendar className="size-4 text-primary" />
-                            Ano
-                        </label>
-                        <Select
-                            value={selectedYear}
-                            onChange={(e) => setSelectedYear(e.target.value)}
-                        >
-                            <option value="" disabled>Selecione o ano</option>
-                            {years.map(y => (
-                                <option key={y} value={y}>{y}</option>
-                            ))}
-                        </Select>
-                    </div>
-
-                    <div className="w-full md:w-auto">
+                    <div className="lg:col-span-1 flex items-end">
                         <Button
-                            variant="secondary"
-                            className="w-full md:w-auto"
-                            onClick={handleFilter}
+                            onClick={handleExportExcel}
+                            disabled={previewVisits.length === 0}
+                            className="w-full h-11 md:h-12 font-bold shadow-lg shadow-primary/20"
                         >
-                            <Search className="size-5 mr-2" />
-                            Filtrar Visitas
+                            <Download className="size-4 mr-2" />
+                            Exportar Excel
                         </Button>
                     </div>
                 </div>
             </div>
 
-            {/* Preview Section */}
-            <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between px-2">
-                    <h3 className="text-xl font-bold text-foreground">Pré-visualização dos Dados</h3>
-                    <Button onClick={handleExportExcel} disabled={previewVisits.length === 0}>
-                        <Download className="size-5 mr-2" />
-                        Baixar Excel (.xlsx)
-                    </Button>
+            {/* Content Section */}
+            <div className="bg-card rounded-xl border border-border shadow-md overflow-hidden">
+                <div className="p-4 md:p-6 border-b border-border bg-muted/30 flex items-center justify-between">
+                    <div>
+                        <h3 className="font-bold text-foreground">Relatório Gerado</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">Mostrando {previewVisits.length} registros no período</p>
+                    </div>
                 </div>
 
-                <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-muted/50 text-muted-foreground">
-                                <tr>
-                                    <th className="px-6 py-4 font-semibold whitespace-nowrap">ID Visita</th>
-                                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Data</th>
-                                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Imobiliária</th>
-                                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Endereço</th>
-                                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Valor</th>
-                                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Serviço</th>
-                                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Status</th>
-                                    <th className="px-6 py-4 font-semibold whitespace-nowrap">Observações</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                                {previewVisits.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={8} className="px-6 py-8 text-center text-muted-foreground italic">
-                                            Selecione os filtros acima para visualizar os dados.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    previewVisits.map(visit => (
-                                        <tr key={visit.id} className="hover:bg-muted/30 transition-colors">
-                                            <td className="px-6 py-4 font-medium text-foreground">{visit.code}</td>
-                                            <td className="px-6 py-4 text-muted-foreground">{new Date(visit.date).toLocaleDateString('pt-BR')}</td>
-                                            <td className="px-6 py-4 text-foreground">{visit.realEstateAgency}</td>
-                                            <td className="px-6 py-4 text-muted-foreground max-w-[200px] truncate">{visit.address}</td>
-                                            <td className="px-6 py-4 font-medium text-foreground">
-                                                {formatCurrency(visit.value)}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-foreground align-top">
-                                                <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium border ${getServiceTypeColor(visit.type)}`}>
-                                                    {formatServiceType(visit.type)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${getStatusColor(visit.status)}`}>
-                                                    {getStatusLabel(visit.status)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-muted-foreground whitespace-pre-wrap max-w-[200px]">
-                                                {visit.observations || '-'}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                            {previewVisits.length > 0 && (
-                                <tfoot className="bg-muted/50 font-bold">
-                                    <tr>
-                                        <td colSpan={4} className="px-6 py-4 text-right">TOTAL</td>
-                                        <td className="px-6 py-4 text-primary">{formatCurrency(totalValue)}</td>
-                                        <td colSpan={3}></td>
-                                    </tr>
-                                </tfoot>
-                            )}
-                        </table>
-                    </div>
-                    {/* Footer metadata */}
+                {/* MOBILE VIEW: Card List */}
+                <div className="xl:hidden divide-y divide-border">
+                    {previewVisits.length === 0 ? (
+                        <div className="p-8 text-center text-muted-foreground">
+                            Nenhum registro encontrado.
+                        </div>
+                    ) : (
+                        previewVisits.map((visit) => (
+                            <div key={visit.id} className="p-4 flex flex-col gap-3">
+                                <div className="flex justify-between items-start">
+                                    <span className="font-mono text-[10px] font-bold bg-background px-1.5 py-0.5 rounded border border-border">
+                                        {visit.code}
+                                    </span>
+                                    <span className="text-sm font-bold text-foreground">
+                                        {formatCurrency(visit.value)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-bold text-foreground line-clamp-2">{visit.address}</h4>
+                                    <p className="text-xs text-muted-foreground">{visit.realEstateAgency}</p>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className={`text-[10px] items-center rounded-md px-1.5 py-0.5 font-medium border ${getServiceTypeColor(visit.type)}`}>
+                                        {formatServiceType(visit.type)}
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground">
+                                        {new Date(visit.date).toLocaleDateString('pt-BR')}
+                                    </span>
+                                </div>
+                            </div>
+                        ))
+                    )}
                     {previewVisits.length > 0 && (
-                        <div className="px-6 py-3 border-t border-border bg-muted/20 text-xs text-muted-foreground">
-                            Total de registros: {previewVisits.length}
+                        <div className="p-4 bg-primary/5 flex justify-between items-center">
+                            <span className="text-sm font-bold text-primary">TOTAL</span>
+                            <span className="text-lg font-black text-primary">{formatCurrency(totalValue)}</span>
                         </div>
                     )}
+                </div>
+
+                {/* DESKTOP VIEW: Table */}
+                <div className="hidden xl:block overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wider font-bold">
+                                <th className="px-6 py-4">Data</th>
+                                <th className="px-6 py-4">Imobiliária</th>
+                                <th className="px-6 py-4">Endereço</th>
+                                <th className="px-4 py-4">Serviço</th>
+                                <th className="px-6 py-4 text-right">Valor</th>
+                                <th className="px-6 py-4">Obs</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                            {previewVisits.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground italic">
+                                        Selecione os filtros acima para visualizar os dados.
+                                    </td>
+                                </tr>
+                            ) : (
+                                previewVisits.map((visit) => (
+                                    <tr key={visit.id} className="hover:bg-accent/30 transition-colors group">
+                                        <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
+                                            {new Date(visit.date).toLocaleDateString('pt-BR')}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-semibold">{visit.realEstateAgency}</td>
+                                        <td className="px-6 py-4 text-sm text-muted-foreground truncate max-w-[200px]" title={visit.address}>
+                                            {visit.address}
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium border ${getServiceTypeColor(visit.type)}`}>
+                                                {formatServiceType(visit.type)}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-bold text-right text-foreground">
+                                            {formatCurrency(visit.value)}
+                                        </td>
+                                        <td className="px-6 py-4 text-xs text-muted-foreground max-w-[150px] truncate">
+                                            {visit.observations || '-'}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                        {previewVisits.length > 0 && (
+                            <tfoot className="bg-primary/5 border-t-2 border-primary/20">
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-5 text-sm font-black text-primary text-right uppercase tracking-wider">TOTAL DO PERÍODO</td>
+                                    <td className="px-6 py-5 text-lg font-black text-primary text-right">
+                                        {formatCurrency(totalValue)}
+                                    </td>
+                                    <td className="px-6 py-5"></td>
+                                </tr>
+                            </tfoot>
+                        )}
+                    </table>
                 </div>
             </div>
         </div>

@@ -120,7 +120,7 @@ export default function TabRegistration() {
     return (
         <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 animate-in fade-in duration-500">
 
-            <Card className="p-6 md:p-8 bg-card border-border">
+            <Card className="p-5 md:p-8 bg-card border-border">
                 <form onSubmit={handleSubmit} className="flex flex-col gap-6">
 
                     {/* Header Section */}
@@ -129,8 +129,8 @@ export default function TabRegistration() {
                             <Camera className="text-primary size-5" />
                             Dados da Visita
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="flex flex-col gap-2 md:col-span-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                            <div className="flex flex-col gap-2 sm:col-span-1">
                                 <Label htmlFor="code">Código</Label>
                                 <Input
                                     id="code"
@@ -139,9 +139,10 @@ export default function TabRegistration() {
                                     value={formData.code}
                                     onChange={handleChange}
                                     required
+                                    className="h-11 md:h-12"
                                 />
                             </div>
-                            <div className="flex flex-col gap-2 md:col-span-3">
+                            <div className="flex flex-col gap-2 sm:col-span-3">
                                 <Label htmlFor="agency">Imobiliária</Label>
                                 {isNewAgency ? (
                                     <div className="flex gap-2 animate-in fade-in slide-in-from-left-2">
@@ -150,7 +151,7 @@ export default function TabRegistration() {
                                             value={customAgency}
                                             onChange={(e) => setCustomAgency(e.target.value)}
                                             autoFocus
-                                            className="flex-1"
+                                            className="flex-1 h-11 md:h-12"
                                             required={isNewAgency}
                                         />
                                         <Button
@@ -161,7 +162,7 @@ export default function TabRegistration() {
                                                 setCustomAgency('');
                                                 setFormData(prev => ({ ...prev, realEstateAgency: '' }))
                                             }}
-                                            className="shrink-0 px-3"
+                                            className="shrink-0 px-3 h-11 md:h-12"
                                             title="Cancelar"
                                         >
                                             <X className="size-5" />
@@ -174,6 +175,7 @@ export default function TabRegistration() {
                                         value={formData.realEstateAgency}
                                         onChange={handleChange}
                                         required={!isNewAgency}
+                                        className="h-11 md:h-12"
                                     >
                                         <option value="" disabled>Selecione a imobiliária...</option>
                                         {agencies.map(agency => (
@@ -197,7 +199,7 @@ export default function TabRegistration() {
                                 <Input
                                     id="address"
                                     name="address"
-                                    className="pl-10"
+                                    className="pl-10 h-11 md:h-12"
                                     placeholder="Rua, Número, Bairro, Cidade"
                                     value={formData.address}
                                     onChange={handleChange}
@@ -216,6 +218,7 @@ export default function TabRegistration() {
                                 name="type"
                                 value={formData.type}
                                 onChange={handleChange}
+                                className="h-11 md:h-12"
                             >
                                 {serviceTypes.map(t => (
                                     <option key={t.id} value={t.id}>{t.label}</option>
@@ -232,7 +235,7 @@ export default function TabRegistration() {
                                 <Input
                                     id="value"
                                     name="value"
-                                    className="pl-9"
+                                    className="pl-9 h-11 md:h-12"
                                     placeholder="0,00"
                                     type="number"
                                     step="0.01"
@@ -254,6 +257,7 @@ export default function TabRegistration() {
                                 onChange={(e) => setCustomService(e.target.value)}
                                 autoFocus
                                 required
+                                className="h-11 md:h-12"
                             />
                         </div>
                     )}
@@ -261,14 +265,14 @@ export default function TabRegistration() {
                     {/* Status Selection */}
                     <div className="flex flex-col gap-2">
                         <Label>Status</Label>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-3">
                             {statusOptions.map((status) => (
                                 <button
                                     key={status.id}
                                     type="button"
                                     onClick={() => setFormData(prev => ({ ...prev, status: status.id as VisitStatus }))}
                                     className={`
-                                    flex items-center justify-center gap-2 py-3 px-2 rounded-lg border font-bold text-sm transition-all
+                                    flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-1 rounded-lg border font-bold text-[10px] sm:text-sm transition-all
                                     ${formData.status === status.id
                                             ? status.activeClass + ' shadow-md scale-[1.02]'
                                             : 'bg-card ' + status.inactiveClass
@@ -276,7 +280,7 @@ export default function TabRegistration() {
                                 `}
                                 >
                                     <status.icon className="size-4" />
-                                    <span className="hidden sm:inline">{status.label}</span>
+                                    <span>{status.label}</span>
                                 </button>
                             ))}
                         </div>
@@ -290,20 +294,20 @@ export default function TabRegistration() {
                             name="observations"
                             placeholder="Detalhes adicionais sobre a visita..."
                             rows={4}
-                            className="resize-none"
+                            className="resize-none text-sm"
                             value={formData.observations}
                             onChange={handleChange}
                         />
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center justify-end gap-4 pt-4 border-t border-border mt-2">
-                        <Button type="button" variant="ghost">Cancelar</Button>
-                        <Button type="submit" disabled={loading}>
+                    <div className="flex items-center justify-end gap-3 sm:gap-4 pt-4 border-t border-border mt-2">
+                        <Button type="button" variant="ghost" className="h-11 md:h-12 flex-1 sm:flex-none">Cancelar</Button>
+                        <Button type="submit" disabled={loading} className="h-11 md:h-12 flex-1 sm:flex-none">
                             {loading ? 'Salvando...' : (
                                 <>
-                                    <Save className="size-5 mr-2" />
-                                    Salvar Visita
+                                    <Save className="size-5 mr-1.5 md:mr-2" />
+                                    Salvar
                                 </>
                             )}
                         </Button>
