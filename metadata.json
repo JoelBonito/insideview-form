@@ -1,0 +1,5 @@
+{
+  "name": "Inove Foto Gestão",
+  "description": "Aplicação web para gestão de visitas fotográficas, permitindo cadastro, visualização e exportação de relatórios via Google Sheets.",
+  "requestFramePermissions": []
+}
