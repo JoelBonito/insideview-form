@@ -51,7 +51,7 @@ export default function App() {
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 p-4 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible bg-sidebar md:bg-transparent justify-between md:justify-start">
+                <nav className="flex-1 p-3 md:p-4 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible bg-sidebar md:bg-transparent justify-around md:justify-start pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-4 px-6 md:px-4">
                     {[
                         { id: Tab.REGISTRATION, label: 'Nova Visita', icon: Camera },
                         { id: Tab.SUMMARY, label: 'Visitas', icon: LayoutDashboard },
@@ -61,16 +61,16 @@ export default function App() {
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
                             className={`
-                        flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all w-full md:w-auto
+                        flex flex-col md:flex-row items-center gap-1 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-lg text-[10px] md:text-sm font-medium transition-all w-auto md:w-full
                         ${activeTab === item.id
-                                    ? 'bg-sidebar-active text-sidebar-activeFg border-l-4 border-sidebar-border shadow-sm'
+                                    ? 'bg-sidebar-active text-sidebar-activeFg border-b-2 md:border-b-0 md:border-l-4 border-sidebar-border shadow-sm'
                                     : 'text-sidebar-fg hover:bg-accent hover:text-foreground'
                                 }
                     `}
                             title={item.label}
                         >
-                            <item.icon className="size-5" />
-                            <span className={sidebarCollapsed ? 'hidden' : 'hidden md:inline'}>{item.label}</span>
+                            <item.icon className="size-5 md:size-5" />
+                            <span className={sidebarCollapsed ? 'hidden' : 'inline'}>{item.label}</span>
                         </button>
                     ))}
                 </nav>
@@ -92,54 +92,54 @@ export default function App() {
             <main className="flex-1 overflow-y-auto h-screen relative order-1 md:order-2">
                 {/* TopBar Flutuante com Blur Effect */}
                 <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50">
-                    <div className="flex items-center justify-between px-4 md:px-8 py-4">
+                    <div className="flex items-center justify-between px-4 md:px-8 lg:px-12 py-3 md:py-4">
                         {/* Logo Mobile (apenas em mobile) */}
                         <div className="flex md:hidden items-center gap-2">
-                            <img src={theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'} alt="Insideview 360" className="h-10" />
+                            <img src={theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'} alt="Insideview 360" className="h-8 md:h-10" />
                         </div>
 
                         {/* Título da Página (Desktop) */}
-                        <h1 className="hidden md:block text-2xl font-bold text-foreground">
+                        <h1 className="hidden md:block text-xl lg:text-2xl font-bold text-foreground">
                             {activeTab === Tab.REGISTRATION ? 'Nova Visita' :
                                 activeTab === Tab.SUMMARY ? 'Visitas' :
                                     activeTab === Tab.LISTINGS ? 'Relatórios' : ''}
                         </h1>
 
                         {/* User & Theme Controls */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 md:gap-3">
                             {/* Theme Toggle - Estilo Pill */}
                             <div className="flex items-center bg-card border border-border rounded-full p-1">
                                 <button
                                     onClick={() => { if (theme !== 'light') toggleTheme(); }}
-                                    className={`p-2 rounded-full transition-colors ${theme === 'light' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                                    className={`p-1.5 md:p-2 rounded-full transition-colors ${theme === 'light' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                                     title="Modo Claro"
                                 >
-                                    <Sun className="size-4" />
+                                    <Sun className="size-3.5 md:size-4" />
                                 </button>
                                 <button
                                     onClick={() => { if (theme !== 'dark') toggleTheme(); }}
-                                    className={`p-2 rounded-full transition-colors ${theme === 'dark' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                                    className={`p-1.5 md:p-2 rounded-full transition-colors ${theme === 'dark' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                                     title="Modo Escuro"
                                 >
-                                    <Moon className="size-4" />
+                                    <Moon className="size-3.5 md:size-4" />
                                 </button>
                             </div>
 
                             {/* User Avatar & Name */}
-                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
-                                <div className="size-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
+                            <div className="flex items-center gap-2 pl-1 pr-1 md:pr-3 py-1.5 md:py-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
+                                <div className="size-8 md:size-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs md:text-sm">
                                     EP
                                 </div>
-                                <div className="hidden md:flex flex-col">
+                                <div className="hidden lg:flex flex-col">
                                     <span className="text-sm font-semibold leading-none">Evelyn Porto</span>
-                                    <span className="text-xs text-muted-foreground">Fotógrafa</span>
+                                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mt-0.5">Fotógrafa</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </header>
 
-                <div className="max-w-7xl mx-auto p-4 md:p-8 lg:p-12 pb-24 md:pb-12">
+                <div className="max-w-7xl mx-auto p-4 md:p-8 lg:p-12 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-12">
                     {renderContent()}
                 </div>
             </main>
