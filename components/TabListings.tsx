@@ -18,11 +18,24 @@ export default function TabListings() {
         sheetsService.getAgencies().then(setAgencies);
     }, []);
 
+    useEffect(() => {
+        if (selectedAgency && selectedMonth && selectedYear) {
+            handleFilter();
+        }
+    }, [selectedAgency, selectedMonth, selectedYear]);
+
     const handleFilter = async () => {
         if (!selectedAgency || !selectedMonth || !selectedYear) return;
 
         const month = parseInt(selectedMonth);
         const year = parseInt(selectedYear);
+
+        // Ensure month is 0-indexed for the API call if necessary, assuming API expects 0-11
+        // But getVisitsForExport likely handles it, converting if needed.
+        // Assuming user passes 1-12 and service handles it. 
+        // Let's verify: service expects (agency: string, month: number, year: number)
+        // Usually month is 0-indexed in JS Date, but humans use 1-12.
+        // In previous code: `month - 1` was passed. Keeping consistency.
 
         const visits = await sheetsService.getVisitsForExport(selectedAgency, month - 1, year);
         setPreviewVisits(visits);
