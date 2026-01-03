@@ -242,20 +242,20 @@ export default function TabSummary() {
                                 type="date"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
-                                className="pl-9 h-11 md:h-12 text-xs md:text-sm"
+                                className="pl-9 h-11 md:h-12 text-xs md:text-sm appearance-none bg-muted/50 text-foreground w-full min-h-[44px] md:min-h-[48px] pt-[0.6rem]"
                             />
                         </div>
 
                         {/* Date End */}
                         <div className="relative lg:col-span-1">
-                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10 pointer-events-none">
                                 <span className="text-[10px] font-bold">ATÉ</span>
                             </div>
                             <Input
                                 type="date"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
-                                className="pl-10 h-11 md:h-12 text-xs md:text-sm"
+                                className="pl-10 h-11 md:h-12 text-xs md:text-sm appearance-none bg-muted/50 text-foreground w-full min-h-[44px] md:min-h-[48px] pt-[0.6rem]"
                             />
                         </div>
                     </div>
