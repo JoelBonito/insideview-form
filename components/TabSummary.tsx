@@ -231,8 +231,8 @@ export default function TabSummary() {
                         </Select>
                     </div>
 
-                    {/* Date Filters Grid (2 cols on mobile) */}
-                    <div className="grid grid-cols-2 gap-3 md:contents">
+                    {/* Date Filters Grid (1 col on mobile for better touch area) */}
+                    <div className="grid grid-cols-1 gap-3 md:contents">
                         {/* Date Start */}
                         <div className="relative lg:col-span-1">
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
