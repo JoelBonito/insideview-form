@@ -37,6 +37,35 @@ export const getStatusLabel = (status: string) => {
     return labels[status] || status.charAt(0).toUpperCase() + status.slice(1);
 };
 
+/**
+ * Formata uma string date-only (YYYY-MM-DD) para dd/mm/aaaa sem conversão de timezone.
+ * Evita o bug de new Date("YYYY-MM-DD") interpretar como UTC e exibir -1 dia em fusos negativos.
+ */
+export const formatDateBR = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('T')[0].split('-');
+    return `${d}/${m}/${y}`;
+};
+
+/**
+ * Retorna a data local atual no formato YYYY-MM-DD, sem depender de UTC.
+ */
+export const getTodayDateString = (): string => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+};
+
+/**
+ * Compara duas strings date-only (YYYY-MM-DD) sem conversão de timezone.
+ * Retorna negativo se a < b, 0 se iguais, positivo se a > b.
+ */
+export const compareDates = (a: string, b: string): number => {
+    return a.split('T')[0].localeCompare(b.split('T')[0]);
+};
+
 export const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('pt-BR', {
         style: 'currency',

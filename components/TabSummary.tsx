@@ -3,8 +3,8 @@ import { Search, RefreshCw, Download, Filter, Edit, Eye, ChevronLeft, ChevronRig
 import { sheetsService } from '../services/sheetsService';
 import { RealEstateAgency, Visit, VisitStatus } from '../types';
 import { Button, Input, Modal, Label, Select, TextArea } from './ui/LayoutComponents';
-import { formatServiceType, getServiceTypeColor, getStatusColor, getStatusLabel, formatCurrency } from '../lib/utils-ui';
-import * as XLSX from 'xlsx';
+import { formatServiceType, getServiceTypeColor, getStatusColor, getStatusLabel, formatCurrency, compareDates, formatDateBR } from '../lib/utils-ui';
+import XLSX from 'xlsx-js-style';
 
 export default function TabSummary() {
     const [visits, setVisits] = useState<Visit[]>([]);
@@ -74,18 +74,12 @@ export default function TabSummary() {
             result = result.filter(v => v.realEstateAgency === filterAgency);
         }
 
-        // 4. Date Range Filter
+        // 4. Date Range Filter (comparação de strings YYYY-MM-DD, sem conversão de timezone)
         if (startDate) {
-            // Create date object and set time to start of day
-            const start = new Date(startDate);
-            start.setHours(0, 0, 0, 0);
-            result = result.filter(v => new Date(v.date) >= start);
+            result = result.filter(v => compareDates(v.date, startDate) >= 0);
         }
         if (endDate) {
-            // Create date object and set time to end of day
-            const end = new Date(endDate);
-            end.setHours(23, 59, 59, 999);
-            result = result.filter(v => new Date(v.date) <= end);
+            result = result.filter(v => compareDates(v.date, endDate) <= 0);
         }
 
         setFilteredVisits(result);
@@ -331,7 +325,7 @@ export default function TabSummary() {
                                 <div className="flex flex-col gap-0.5">
                                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                         <Calendar className="size-3" />
-                                        {visit.criado_em ? new Date(visit.criado_em).toLocaleDateString('pt-BR') : 'N/A'}
+                                        {visit.date ? formatDateBR(visit.date) : 'N/A'}
                                     </div>
                                     <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium w-fit mt-1 border ${getServiceTypeColor(visit.type)}`}>
                                         {formatServiceType(visit.type)}
@@ -393,8 +387,10 @@ export default function TabSummary() {
                                         </td>
                                         <td className="px-6 py-4 text-sm text-muted-foreground align-top">
                                             <div className="flex flex-col">
-                                                <span className="font-medium text-foreground">{visit.criado_em ? new Date(visit.criado_em).toLocaleDateString('pt-BR') : 'N/A'}</span>
-                                                <span className="text-xs">{visit.criado_em ? new Date(visit.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
+                                                <span className="font-medium text-foreground">{visit.date ? formatDateBR(visit.date) : 'N/A'}</span>
+                                                <span className="text-xs">
+                                                    {visit.date && visit.date.includes('T') ? visit.date.split('T')[1].slice(0, 5) : ''}
+                                                </span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 align-top">
@@ -493,7 +489,7 @@ export default function TabSummary() {
                                         }
                                         return editFormData.date.slice(0, 16);
                                     })()}
-                                    onChange={(e) => setEditFormData({ ...editFormData, date: new Date(e.target.value).toISOString() })}
+                                    onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
                                     disabled={!isEditMode}
                                 />
                             </div>

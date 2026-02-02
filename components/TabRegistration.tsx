@@ -3,6 +3,7 @@ import { Camera, Save, MapPin, DollarSign, Image as ImageIcon, Video, Layers, Pl
 import { sheetsService } from '../services/sheetsService';
 import { RealEstateAgency, VisitStatus } from '../types';
 import { Button, Card, Input, Label, Select, TextArea } from './ui/LayoutComponents';
+import { getTodayDateString } from '../lib/utils-ui';
 
 export default function TabRegistration() {
     const [agencies, setAgencies] = useState<RealEstateAgency[]>([]);
@@ -77,7 +78,7 @@ export default function TabRegistration() {
             await sheetsService.saveVisit({
                 ...formData,
                 realEstateAgency: finalAgency,
-                date: new Date().toISOString(),
+                date: getTodayDateString(),
                 type: finalType,
                 value: parseFloat(formData.value) || 0
             });

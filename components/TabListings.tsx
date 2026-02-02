@@ -3,8 +3,8 @@ import { Download, Search, Calendar, Building2 } from 'lucide-react';
 import { sheetsService } from '../services/sheetsService';
 import { RealEstateAgency, Visit } from '../types';
 import { Button, Select } from './ui/LayoutComponents';
-import { formatServiceType, getServiceTypeColor, getStatusColor, getStatusLabel, formatCurrency } from '../lib/utils-ui';
-import * as XLSX from 'xlsx';
+import { formatServiceType, getServiceTypeColor, getStatusColor, getStatusLabel, formatCurrency, formatDateBR } from '../lib/utils-ui';
+import XLSX from 'xlsx-js-style';
 
 export default function TabListings() {
     const [agencies, setAgencies] = useState<RealEstateAgency[]>([]);
@@ -44,6 +44,34 @@ export default function TabListings() {
     const handleExportExcel = async () => {
         if (previewVisits.length === 0) return;
 
+        const applyStyles = (ws: XLSX.WorkSheet) => {
+            // Define largura das colunas baseada no template do usuário
+            ws['!cols'] = [
+                { wch: 11 }, // A: ID Visita
+                { wch: 13 }, // B: Data
+                { wch: 12 }, // C: Imobiliária
+                { wch: 61 }, // D: Endereço
+                { wch: 12 }, // E: Valor
+                { wch: 12 }, // F: Status
+                { wch: 13 }, // G: Serviço
+                { wch: 51 }  // H: Observações
+            ];
+
+            // Aplica formatação de moeda na coluna E (Index 4)
+            // Itera sobre todas as linhas de dados (ignorando cabeçalho)
+            if (ws['!ref']) {
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                // Começa da linha 1 (A2) pois a 0 é cabeçalho
+                for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                    const ref = XLSX.utils.encode_cell({ r: R, c: 4 }); // Coluna E
+                    if (ws[ref]) {
+                        ws[ref].t = 'n'; // Força tipo numérico
+                        ws[ref].z = '"R$"\\ #,##0.00'; // Formato moeda BRL
+                    }
+                }
+            }
+        };
+
         try {
             // Tenta carregar o modelo personalizado
             const response = await fetch('/template.xlsx');
@@ -56,9 +84,18 @@ export default function TabListings() {
             const wsName = wb.SheetNames[0];
             const ws = wb.Sheets[wsName];
 
+            // Limpa dados de exemplo e merges do template (preserva apenas o header na row 0)
+            delete ws['!merges'];
+            const templateRange = XLSX.utils.decode_range(ws['!ref'] || 'A1:H1');
+            for (let R = 1; R <= templateRange.e.r; ++R) {
+                for (let C = templateRange.s.c; C <= templateRange.e.c; ++C) {
+                    delete ws[XLSX.utils.encode_cell({ r: R, c: C })];
+                }
+            }
+
             const dataToExport = previewVisits.map(v => ({
                 "ID Visita": v.code,
-                "Data": new Date(v.date).toLocaleDateString('pt-BR'),
+                "Data": formatDateBR(v.date),
                 "Imobiliária": v.realEstateAgency,
                 "Endereço": v.address,
                 "Valor": v.value,
@@ -70,11 +107,27 @@ export default function TabListings() {
             // Adiciona os dados começando da segunda linha (A2) pulando o header (que já deve estar no modelo)
             XLSX.utils.sheet_add_json(ws, dataToExport, { origin: "A2", skipHeader: true });
 
+            applyStyles(ws);
+
             // Adiciona a linha de TOTAL no final
             const lastRowIndex = dataToExport.length + 1;
             XLSX.utils.sheet_add_aoa(ws, [
                 ["TOTAL", "", "", "", totalValue]
             ], { origin: `A${lastRowIndex + 1}` });
+
+            // Aplica estilo (Negrito) na linha de total e formatação de moeda na coluna E
+            for (let C = 0; C <= 7; ++C) {
+                const cellRef = XLSX.utils.encode_cell({ r: lastRowIndex, c: C });
+                if (!ws[cellRef]) ws[cellRef] = { v: '', t: 's' };
+
+                if (!ws[cellRef].s) ws[cellRef].s = {};
+                ws[cellRef].s.font = { bold: true };
+
+                if (C === 4) { // Coluna Valor
+                    ws[cellRef].t = 'n';
+                    ws[cellRef].z = '"R$"\\ #,##0.00';
+                }
+            }
 
             const fileName = selectedAgency === 'all' ? 'todas_imobiliarias' : selectedAgency;
             XLSX.writeFile(wb, `relatorio_${fileName}_${selectedMonth}_${selectedYear}.xlsx`);
@@ -85,7 +138,7 @@ export default function TabListings() {
             // Fallback para exportação padrão caso o template falhe
             const dataToExport = previewVisits.map(v => ({
                 "ID Visita": v.code,
-                "Data": new Date(v.date).toLocaleDateString('pt-BR'),
+                "Data": formatDateBR(v.date),
                 "Imobiliária": v.realEstateAgency,
                 "Endereço": v.address,
                 "Valor": v.value,
@@ -96,10 +149,29 @@ export default function TabListings() {
 
             const ws = XLSX.utils.json_to_sheet(dataToExport);
 
+            applyStyles(ws);
+
             // Adiciona linha de total no fallback também
             XLSX.utils.sheet_add_aoa(ws, [
                 ["TOTAL", "", "", "", totalValue]
             ], { origin: -1 });
+
+            // Re-aplica estilo (Negrito) na linha de total no fallback
+            const range = XLSX.utils.decode_range(ws['!ref']!);
+            const totalRow = range.e.r; // A última linha é o total
+
+            for (let C = 0; C <= 7; ++C) {
+                const totalCellRef = XLSX.utils.encode_cell({ r: totalRow, c: C });
+                if (ws[totalCellRef]) {
+                    if (!ws[totalCellRef].s) ws[totalCellRef].s = {};
+                    ws[totalCellRef].s.font = { bold: true };
+
+                    if (C === 4) { // Coluna Valor
+                        ws[totalCellRef].t = 'n';
+                        ws[totalCellRef].z = '"R$"\\ #,##0.00';
+                    }
+                }
+            }
 
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Relatório");
@@ -236,7 +308,7 @@ export default function TabListings() {
                                         {formatServiceType(visit.type)}
                                     </span>
                                     <span className="text-[10px] text-muted-foreground">
-                                        {new Date(visit.date).toLocaleDateString('pt-BR')}
+                                        {formatDateBR(visit.date)}
                                     </span>
                                 </div>
                             </div>
@@ -255,6 +327,7 @@ export default function TabListings() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wider font-bold">
+                                <th className="px-6 py-4">Código</th>
                                 <th className="px-6 py-4">Data</th>
                                 <th className="px-6 py-4">Imobiliária</th>
                                 <th className="px-6 py-4">Endereço</th>
@@ -266,7 +339,7 @@ export default function TabListings() {
                         <tbody className="divide-y divide-border">
                             {previewVisits.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground italic">
+                                    <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground italic">
                                         Selecione os filtros acima para visualizar os dados.
                                     </td>
                                 </tr>
@@ -274,7 +347,12 @@ export default function TabListings() {
                                 previewVisits.map((visit) => (
                                     <tr key={visit.id} className="hover:bg-accent/30 transition-colors group">
                                         <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                                            {new Date(visit.date).toLocaleDateString('pt-BR')}
+                                            <span className="font-mono text-xs font-bold bg-background px-1.5 py-0.5 rounded border border-border">
+                                                {visit.code}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
+                                            {formatDateBR(visit.date)}
                                         </td>
                                         <td className="px-6 py-4 text-sm font-semibold">{visit.realEstateAgency}</td>
                                         <td className="px-6 py-4 text-sm text-muted-foreground truncate max-w-[200px]" title={visit.address}>
@@ -298,7 +376,7 @@ export default function TabListings() {
                         {previewVisits.length > 0 && (
                             <tfoot className="bg-primary/5 border-t-2 border-primary/20">
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-5 text-sm font-black text-primary text-right uppercase tracking-wider">TOTAL DO PERÍODO</td>
+                                    <td colSpan={5} className="px-6 py-5 text-sm font-black text-primary text-right uppercase tracking-wider">TOTAL DO PERÍODO</td>
                                     <td className="px-6 py-5 text-lg font-black text-primary text-right">
                                         {formatCurrency(totalValue)}
                                     </td>
