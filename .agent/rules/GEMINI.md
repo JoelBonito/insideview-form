@@ -38,7 +38,7 @@ Agent activated → Check frontmatter "skills:" → Read SKILL.md (INDEX) → Re
 | **SIMPLE CODE**  | "fix", "add", "change" (single file)       | TIER 0 + TIER 1 (lite)         | Inline Edit                 |
 | **COMPLEX CODE** | "build", "create", "implement", "refactor" | TIER 0 + TIER 1 (full) + Agent | **{task-slug}.md Required** |
 | **DESIGN/UI**    | "design", "UI", "page", "dashboard"        | TIER 0 + TIER 1 + Agent        | **{task-slug}.md Required** |
-| **SLASH CMD**    | /create, /orchestrate, /debug              | Command-specific flow          | Variable                    |
+| **SLASH CMD**    | /create, /orchestrate, /debug, /define, /journeys, /context, /readiness | Command-specific flow          | Variable                    |
 
 ---
 
@@ -70,26 +70,6 @@ When auto-applying an agent, inform the user:
 1. **Silent Analysis**: No verbose meta-commentary ("I am analyzing...").
 2. **Respect Overrides**: If user mentions `@agent`, use it.
 3. **Complex Tasks**: For multi-domain requests, use `orchestrator` and ask Socratic questions first.
-
-### ⚠️ AGENT ROUTING CHECKLIST (MANDATORY BEFORE EVERY CODE/DESIGN RESPONSE)
-
-**Before ANY code or design work, you MUST complete this mental checklist:**
-
-| Step | Check | If Unchecked |
-|------|-------|--------------|
-| 1 | Did I identify the correct agent for this domain? | → STOP. Analyze request domain first. |
-| 2 | Did I READ the agent's `.md` file (or recall its rules)? | → STOP. Open `.agent/agents/{agent}.md` |
-| 3 | Did I announce `🤖 Applying knowledge of @[agent]...`? | → STOP. Add announcement before response. |
-| 4 | Did I load required skills from agent's frontmatter? | → STOP. Check `skills:` field and read them. |
-
-**Failure Conditions:**
-
-- ❌ Writing code without identifying an agent = **PROTOCOL VIOLATION**
-- ❌ Skipping the announcement = **USER CANNOT VERIFY AGENT WAS USED**
-- ❌ Ignoring agent-specific rules (e.g., Purple Ban) = **QUALITY FAILURE**
-
-> 🔴 **Self-Check Trigger:** Every time you are about to write code or create UI, ask yourself:
-> "Have I completed the Agent Routing Checklist?" If NO → Complete it first.
 
 ---
 
@@ -179,6 +159,16 @@ When user's prompt is NOT in English:
 2. **Handle Spec-heavy Requests:** When user gives a list (Answers 1, 2, 3...), do NOT skip the gate. Instead, ask about **Trade-offs** or **Edge Cases** (e.g., "LocalStorage confirmed, but should we handle data clearing or versioning?") before starting.
 3. **Wait:** Do NOT invoke subagents or write code until the user clears the Gate.
 4. **Reference:** Full protocol in `@[skills/brainstorming]`.
+
+### ✅ Auto-Finish Protocol (MANDATORY)
+
+**When you complete a task defined in the Backlog:**
+
+1.  **EXECUTE:** `python .agent/scripts/finish_task.py "{task_id}"` (or use `/finish {task_id}` workflow).
+2.  **VERIFY:** Ensure the output says "✅ Marked as complete".
+3.  **INFORM:** Tell the user "Task {id} marked as complete."
+
+> 🔴 **Rule:** You are RESPONSIBLE for updating the backlog status. Do not ask the user to do it.
 
 ### 🏁 Final Checklist Protocol
 

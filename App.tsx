@@ -3,6 +3,7 @@ import { Camera, LayoutDashboard, FileText, Settings, User, ChevronLeft, Chevron
 import TabRegistration from './components/TabRegistration';
 import TabSummary from './components/TabSummary';
 import TabListings from './components/TabListings';
+import ConnectionBanner from './components/ui/ConnectionBanner';
 import { Tab } from './types';
 
 export default function App() {
@@ -90,6 +91,8 @@ export default function App() {
 
             {/* Main Content Area */}
             <main className="flex-1 overflow-y-auto h-screen relative order-1 xl:order-2">
+                {/* Connection Status Banner */}
+                <ConnectionBanner />
                 {/* TopBar Flutuante com Blur Effect */}
                 <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50">
                     <div className="flex items-center justify-between px-4 md:px-8 lg:px-12 py-3 xl:py-4">

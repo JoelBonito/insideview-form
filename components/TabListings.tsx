@@ -1,22 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import { Download, Search, Calendar, Building2 } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Download, Search, Calendar, Building2, WifiOff, RefreshCw } from 'lucide-react';
 import { sheetsService } from '../services/sheetsService';
 import { RealEstateAgency, Visit } from '../types';
+import { useSupabaseStatus } from '../lib/SupabaseStatusContext';
 import { Button, Select } from './ui/LayoutComponents';
 import { formatServiceType, getServiceTypeColor, getStatusColor, getStatusLabel, formatCurrency, formatDateBR } from '../lib/utils-ui';
 import XLSX from 'xlsx-js-style';
 
 export default function TabListings() {
+    const { status, reportSuccess, reportConnectionError } = useSupabaseStatus();
     const [agencies, setAgencies] = useState<RealEstateAgency[]>([]);
     const [previewVisits, setPreviewVisits] = useState<Visit[]>([]);
+    const [connectionError, setConnectionError] = useState(false);
+    const prevStatusRef = useRef(status);
 
     const [selectedAgency, setSelectedAgency] = useState('');
     const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
 
+    const loadAgencies = async () => {
+        const result = await sheetsService.getAgencies();
+        if (result.ok) {
+            setAgencies(result.data);
+            reportSuccess();
+        } else if (result.connectionStatus === 'disconnected') {
+            reportConnectionError();
+            setConnectionError(true);
+        }
+    };
+
     useEffect(() => {
-        sheetsService.getAgencies().then(setAgencies);
+        loadAgencies();
     }, []);
+
+    // Auto-refresh on reconnection
+    useEffect(() => {
+        if (prevStatusRef.current === 'disconnected' && status === 'connected') {
+            loadAgencies();
+            if (selectedAgency && selectedMonth && selectedYear) {
+                handleFilter();
+            }
+        }
+        prevStatusRef.current = status;
+    }, [status]);
 
     useEffect(() => {
         if (selectedAgency && selectedMonth && selectedYear) {
@@ -26,19 +52,19 @@ export default function TabListings() {
 
     const handleFilter = async () => {
         if (!selectedAgency || !selectedMonth || !selectedYear) return;
+        setConnectionError(false);
 
         const month = parseInt(selectedMonth);
         const year = parseInt(selectedYear);
 
-        // Ensure month is 0-indexed for the API call if necessary, assuming API expects 0-11
-        // But getVisitsForExport likely handles it, converting if needed.
-        // Assuming user passes 1-12 and service handles it. 
-        // Let's verify: service expects (agency: string, month: number, year: number)
-        // Usually month is 0-indexed in JS Date, but humans use 1-12.
-        // In previous code: `month - 1` was passed. Keeping consistency.
-
-        const visits = await sheetsService.getVisitsForExport(selectedAgency, month - 1, year);
-        setPreviewVisits(visits);
+        const result = await sheetsService.getVisitsForExport(selectedAgency, month - 1, year);
+        if (result.ok) {
+            setPreviewVisits(result.data);
+            reportSuccess();
+        } else if (result.connectionStatus === 'disconnected') {
+            reportConnectionError();
+            setConnectionError(true);
+        }
     };
 
     const handleExportExcel = async () => {
@@ -263,7 +289,7 @@ export default function TabListings() {
                     <div className="lg:col-span-1 flex items-end">
                         <Button
                             onClick={handleExportExcel}
-                            disabled={previewVisits.length === 0}
+                            disabled={previewVisits.length === 0 || status === 'disconnected'}
                             className="w-full h-11 md:h-12 font-bold shadow-lg shadow-primary/20"
                         >
                             <Download className="size-4 mr-2" />
@@ -284,7 +310,17 @@ export default function TabListings() {
 
                 {/* MOBILE VIEW: Card List */}
                 <div className="xl:hidden divide-y divide-border">
-                    {previewVisits.length === 0 ? (
+                    {connectionError ? (
+                        <div className="p-8 text-center flex flex-col items-center gap-3">
+                            <WifiOff className="size-8 text-warning" />
+                            <p className="text-sm text-foreground font-medium">Nao foi possivel carregar os dados.</p>
+                            <p className="text-xs text-muted-foreground">O servidor esta indisponivel. Verifique a conexao.</p>
+                            <Button variant="outline" size="sm" onClick={handleFilter} className="mt-2">
+                                <RefreshCw className="size-3.5 mr-2" />
+                                Tentar novamente
+                            </Button>
+                        </div>
+                    ) : previewVisits.length === 0 ? (
                         <div className="p-8 text-center text-muted-foreground">
                             Nenhum registro encontrado.
                         </div>
@@ -337,7 +373,21 @@ export default function TabListings() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {previewVisits.length === 0 ? (
+                            {connectionError ? (
+                                <tr>
+                                    <td colSpan={7} className="px-6 py-12 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <WifiOff className="size-8 text-warning" />
+                                            <p className="text-sm text-foreground font-medium">Nao foi possivel carregar os dados.</p>
+                                            <p className="text-xs text-muted-foreground">O servidor esta indisponivel. Verifique a conexao.</p>
+                                            <Button variant="outline" size="sm" onClick={handleFilter} className="mt-2">
+                                                <RefreshCw className="size-3.5 mr-2" />
+                                                Tentar novamente
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : previewVisits.length === 0 ? (
                                 <tr>
                                     <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground italic">
                                         Selecione os filtros acima para visualizar os dados.

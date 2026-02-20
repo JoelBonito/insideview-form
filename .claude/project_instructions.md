@@ -1,6 +1,6 @@
-# CLAUDE.md - Instruções para Claude Code
+# Inove AI Framework - Project Instructions
 
-> Este arquivo é carregado automaticamente pelo Claude Code em cada conversa.
+> **AUTO-LOADED:** Claude Code loads this file automatically for every conversation in this project.
 
 ## Sobre Este Projeto
 

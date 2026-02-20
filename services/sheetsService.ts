@@ -1,10 +1,27 @@
 import { supabase } from '../lib/supabase';
-import { RealEstateAgency, Visit } from '../types';
+import { classifyError } from '../lib/supabaseHealth';
+import type { RealEstateAgency, Visit, ServiceResult } from '../types';
+
+function mapVisit(visit: any): Visit {
+  return {
+    id: visit.id.toString(),
+    code: visit.codigo || `V-${visit.id}`,
+    date: visit.data,
+    realEstateAgency: visit.agencia,
+    address: visit.endereco || '',
+    status: visit.status,
+    type: visit.servico,
+    value: parseFloat(visit.valor) || 0,
+    observations: visit.observacoes || '',
+    criado_em: visit.criado_em,
+    atualizado_em: visit.atualizado_em
+  };
+}
 
 export const sheetsService = {
-  async getAgencies(): Promise<RealEstateAgency[]> {
+  async getAgencies(): Promise<ServiceResult<RealEstateAgency[]>> {
     try {
-      const { data, error } = await supabase
+      const { data, error, status } = await supabase
         .schema('insideview')
         .from('agencias')
         .select('*')
@@ -12,77 +29,75 @@ export const sheetsService = {
         .order('nome');
 
       if (error) {
-        console.error('Erro ao buscar agências:', error);
-        throw error;
+        return { ok: false, error: error.message, connectionStatus: classifyError(status, error) };
       }
 
-      return (data || []).map((agency: any) => ({
-        id: agency.id.toString(),
-        name: agency.nome
-      }));
-    } catch (error) {
-      console.error('Erro ao buscar agências:', error);
-      return [];
+      return {
+        ok: true,
+        data: (data || []).map((agency: any) => ({
+          id: agency.id.toString(),
+          name: agency.nome
+        }))
+      };
+    } catch (error: any) {
+      return { ok: false, error: error?.message || 'Erro desconhecido', connectionStatus: classifyError(null, error) };
     }
   },
 
-  async getVisits(): Promise<Visit[]> {
+  async getVisits(): Promise<ServiceResult<Visit[]>> {
     try {
-      const { data, error } = await supabase
+      const { data, error, status } = await supabase
         .schema('insideview')
         .from('visitas')
         .select('*')
         .order('criado_em', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        return { ok: false, error: error.message, connectionStatus: classifyError(status, error) };
+      }
 
-      return (data || []).map((visit: any) => ({
-        id: visit.id.toString(),
-        code: visit.codigo || `V-${visit.id}`,
-        date: visit.data,
-        realEstateAgency: visit.agencia,
-        address: visit.endereco || '',
-        status: visit.status,
-        type: visit.servico,
-        value: parseFloat(visit.valor) || 0,
-        observations: visit.observacoes || '',
-        criado_em: visit.criado_em,
-        atualizado_em: visit.atualizado_em
-      }));
-    } catch (error) {
-      console.error('Erro ao buscar visitas:', error);
-      return [];
+      return { ok: true, data: (data || []).map(mapVisit) };
+    } catch (error: any) {
+      return { ok: false, error: error?.message || 'Erro desconhecido', connectionStatus: classifyError(null, error) };
     }
   },
 
-  async saveVisit(visit: Omit<Visit, 'id'>): Promise<Visit> {
+  async saveVisit(visit: Omit<Visit, 'id'>): Promise<ServiceResult<Visit>> {
     try {
-      console.log('Salvando visita:', visit); // Debug
-
-      // Verificar se a agência existe, se não, criar
-      const { data: existingAgency } = await supabase
+      // Verificar se a agência existe
+      const { data: existingAgency, error: agencyError, status: agencyStatus } = await supabase
         .schema('insideview')
         .from('agencias')
         .select('id')
         .eq('nome', visit.realEstateAgency)
         .single();
 
-      // Se não existir, criar a agência
-      if (!existingAgency) {
-        console.log('Criando nova agência:', visit.realEstateAgency);
-        await supabase
-          .schema('insideview')
-          .from('agencias')
-          .insert({
-            nome: visit.realEstateAgency,
-            ativo: true
-          });
+      // PGRST116 = "Row not found" — esperado, não é erro de conexão
+      if (agencyError && agencyError.code !== 'PGRST116') {
+        const connStatus = classifyError(agencyStatus, agencyError);
+        if (connStatus === 'disconnected') {
+          return { ok: false, error: 'Servidor indisponível', connectionStatus: 'disconnected' };
+        }
       }
 
-      // Agora salvar a visita
-      const now = new Date();
+      // Se não existir, criar a agência
+      if (!existingAgency) {
+        const { error: insertError, status: insertStatus } = await supabase
+          .schema('insideview')
+          .from('agencias')
+          .insert({ nome: visit.realEstateAgency, ativo: true });
 
-      const { data, error } = await supabase
+        if (insertError) {
+          const connStatus = classifyError(insertStatus, insertError);
+          if (connStatus === 'disconnected') {
+            return { ok: false, error: 'Servidor indisponível ao criar agência', connectionStatus: 'disconnected' };
+          }
+        }
+      }
+
+      // Salvar a visita
+      const now = new Date();
+      const { data, error, status } = await supabase
         .schema('insideview')
         .from('visitas')
         .insert({
@@ -100,32 +115,20 @@ export const sheetsService = {
         .select('*')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        return { ok: false, error: error.message, connectionStatus: classifyError(status, error) };
+      }
 
-      return {
-        id: data.id.toString(),
-        code: data.codigo || `V-${data.id}`,
-        date: data.data,
-        realEstateAgency: data.agencia,
-        address: data.endereco || '',
-        status: data.status,
-        type: data.servico,
-        value: parseFloat(data.valor) || 0,
-        observations: data.observacoes || '',
-        criado_em: data.criado_em,
-        atualizado_em: data.atualizado_em
-      };
-    } catch (error) {
-      console.error('Erro ao salvar visita:', error);
-      throw error;
+      return { ok: true, data: mapVisit(data) };
+    } catch (error: any) {
+      return { ok: false, error: error?.message || 'Erro desconhecido', connectionStatus: classifyError(null, error) };
     }
   },
 
-  async updateVisit(visit: Visit): Promise<Visit> {
+  async updateVisit(visit: Visit): Promise<ServiceResult<Visit>> {
     try {
       const now = new Date();
-
-      const { data, error } = await supabase
+      const { data, error, status } = await supabase
         .schema('insideview')
         .from('visitas')
         .update({
@@ -143,28 +146,17 @@ export const sheetsService = {
         .select('*')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        return { ok: false, error: error.message, connectionStatus: classifyError(status, error) };
+      }
 
-      return {
-        id: data.id.toString(),
-        code: data.codigo || `V-${data.id}`,
-        date: data.data,
-        realEstateAgency: data.agencia,
-        address: data.endereco || '',
-        status: data.status,
-        type: data.servico,
-        value: parseFloat(data.valor) || 0,
-        observations: data.observacoes || '',
-        criado_em: data.criado_em,
-        atualizado_em: data.atualizado_em
-      };
-    } catch (error) {
-      console.error('Erro ao atualizar visita:', error);
-      throw error;
+      return { ok: true, data: mapVisit(data) };
+    } catch (error: any) {
+      return { ok: false, error: error?.message || 'Erro desconhecido', connectionStatus: classifyError(null, error) };
     }
   },
 
-  async getVisitsForExport(agencyName: string, month: number, year: number): Promise<Visit[]> {
+  async getVisitsForExport(agencyName: string, month: number, year: number): Promise<ServiceResult<Visit[]>> {
     try {
       const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
       const lastDay = new Date(year, month + 1, 0).getDate();
@@ -182,41 +174,33 @@ export const sheetsService = {
         query = query.eq('agencia', agencyName);
       }
 
-      const { data, error } = await query;
+      const { data, error, status } = await query;
 
-      if (error) throw error;
+      if (error) {
+        return { ok: false, error: error.message, connectionStatus: classifyError(status, error) };
+      }
 
-      return (data || []).map((visit: any) => ({
-        id: visit.id.toString(),
-        code: visit.codigo || `V-${visit.id}`,
-        date: visit.data,
-        realEstateAgency: visit.agencia,
-        address: visit.endereco || '',
-        status: visit.status,
-        type: visit.servico,
-        value: parseFloat(visit.valor) || 0,
-        observations: visit.observacoes || '',
-        criado_em: visit.criado_em,
-        atualizado_em: visit.atualizado_em
-      }));
-    } catch (error) {
-      console.error('Erro ao exportar visitas:', error);
-      return [];
+      return { ok: true, data: (data || []).map(mapVisit) };
+    } catch (error: any) {
+      return { ok: false, error: error?.message || 'Erro desconhecido', connectionStatus: classifyError(null, error) };
     }
   },
 
-  async deleteVisit(id: string): Promise<void> {
+  async deleteVisit(id: string): Promise<ServiceResult<void>> {
     try {
-      const { error } = await supabase
+      const { error, status } = await supabase
         .schema('insideview')
         .from('visitas')
         .delete()
         .eq('id', parseInt(id));
 
-      if (error) throw error;
-    } catch (error) {
-      console.error('Erro ao excluir visita:', error);
-      throw error;
+      if (error) {
+        return { ok: false, error: error.message, connectionStatus: classifyError(status, error) };
+      }
+
+      return { ok: true, data: undefined };
+    } catch (error: any) {
+      return { ok: false, error: error?.message || 'Erro desconhecido', connectionStatus: classifyError(null, error) };
     }
   }
 };

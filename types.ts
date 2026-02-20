@@ -25,3 +25,9 @@ export enum Tab {
   SUMMARY = 'summary',
   LISTINGS = 'listings',
 }
+
+export type ConnectionStatus = 'connected' | 'disconnected' | 'checking';
+
+export type ServiceResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: string; connectionStatus: ConnectionStatus };

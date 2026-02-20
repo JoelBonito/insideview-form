@@ -1,16 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { Search, RefreshCw, Download, Filter, Edit, Eye, ChevronLeft, ChevronRight, Save, X, Calendar, MapPin, DollarSign, Tag, CheckCircle2, Clock, Ban, Building2, Trash2 } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Search, RefreshCw, Download, Filter, Edit, Eye, ChevronLeft, ChevronRight, Save, X, Calendar, MapPin, DollarSign, Tag, CheckCircle2, Clock, Ban, Building2, Trash2, WifiOff } from 'lucide-react';
 import { sheetsService } from '../services/sheetsService';
 import { RealEstateAgency, Visit, VisitStatus } from '../types';
+import { useSupabaseStatus } from '../lib/SupabaseStatusContext';
 import { Button, Input, Modal, Label, Select, TextArea } from './ui/LayoutComponents';
 import { formatServiceType, getServiceTypeColor, getStatusColor, getStatusLabel, formatCurrency, compareDates, formatDateBR } from '../lib/utils-ui';
 import XLSX from 'xlsx-js-style';
 
 export default function TabSummary() {
+    const { status, reportSuccess, reportConnectionError } = useSupabaseStatus();
     const [visits, setVisits] = useState<Visit[]>([]);
     const [agencies, setAgencies] = useState<RealEstateAgency[]>([]);
     const [filteredVisits, setFilteredVisits] = useState<Visit[]>([]);
     const [loading, setLoading] = useState(false);
+    const [connectionError, setConnectionError] = useState(false);
+    const prevStatusRef = useRef(status);
 
     // Filters State
     const [searchTerm, setSearchTerm] = useState('');
@@ -32,24 +36,42 @@ export default function TabSummary() {
 
     const loadVisits = async () => {
         setLoading(true);
-        try {
-            const [visitsData, agenciesData] = await Promise.all([
-                sheetsService.getVisits(),
-                sheetsService.getAgencies()
-            ]);
-            setVisits(visitsData);
-            setFilteredVisits(visitsData);
-            setAgencies(agenciesData);
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
+        setConnectionError(false);
+        const [visitsResult, agenciesResult] = await Promise.all([
+            sheetsService.getVisits(),
+            sheetsService.getAgencies()
+        ]);
+
+        if (visitsResult.ok) {
+            setVisits(visitsResult.data);
+            setFilteredVisits(visitsResult.data);
+            reportSuccess();
+        } else if (visitsResult.connectionStatus === 'disconnected') {
+            reportConnectionError();
+            setConnectionError(true);
         }
+
+        if (agenciesResult.ok) {
+            setAgencies(agenciesResult.data);
+        } else if (agenciesResult.connectionStatus === 'disconnected') {
+            reportConnectionError();
+            setConnectionError(true);
+        }
+
+        setLoading(false);
     };
 
     useEffect(() => {
         loadVisits();
     }, []);
+
+    // Auto-refresh on reconnection
+    useEffect(() => {
+        if (prevStatusRef.current === 'disconnected' && status === 'connected') {
+            loadVisits();
+        }
+        prevStatusRef.current = status;
+    }, [status]);
 
     useEffect(() => {
         let result = visits;
@@ -118,17 +140,20 @@ export default function TabSummary() {
     const handleSaveVisit = async () => {
         if (!editFormData) return;
         setSaving(true);
-        try {
-            const updatedVisit = await sheetsService.updateVisit(editFormData);
-            // Update local state directly
-            setVisits(prev => prev.map(v => v.id === updatedVisit.id ? updatedVisit : v));
+        const result = await sheetsService.updateVisit(editFormData);
+        if (result.ok) {
+            reportSuccess();
+            setVisits(prev => prev.map(v => v.id === result.data.id ? result.data : v));
             handleModalClose();
-        } catch (error) {
-            console.error("Failed to update visit", error);
-            alert("Erro ao salvar alterações.");
-        } finally {
-            setSaving(false);
+        } else {
+            if (result.connectionStatus === 'disconnected') {
+                reportConnectionError();
+                alert("Servidor indisponivel. Nao foi possivel salvar as alteracoes.");
+            } else {
+                alert(`Erro ao salvar alteracoes: ${result.error}`);
+            }
         }
+        setSaving(false);
     };
     const handleDeleteVisit = async () => {
         if (!selectedVisit) return;
@@ -138,16 +163,20 @@ export default function TabSummary() {
         }
 
         setSaving(true);
-        try {
-            await sheetsService.deleteVisit(selectedVisit.id);
+        const result = await sheetsService.deleteVisit(selectedVisit.id);
+        if (result.ok) {
+            reportSuccess();
             setVisits(prev => prev.filter(v => v.id !== selectedVisit.id));
             handleModalClose();
-        } catch (error) {
-            console.error("Failed to delete visit", error);
-            alert("Erro ao excluir visita.");
-        } finally {
-            setSaving(false);
+        } else {
+            if (result.connectionStatus === 'disconnected') {
+                reportConnectionError();
+                alert("Servidor indisponivel. Nao foi possivel excluir a visita.");
+            } else {
+                alert(`Erro ao excluir visita: ${result.error}`);
+            }
         }
+        setSaving(false);
     };
 
     const formatCurrency = (val: number) => {
@@ -292,6 +321,16 @@ export default function TabSummary() {
             <div className="xl:hidden flex flex-col gap-4">
                 {loading ? (
                     <div className="text-center py-12 text-muted-foreground">Carregando dados...</div>
+                ) : connectionError ? (
+                    <div className="text-center py-12 bg-card border border-border rounded-xl flex flex-col items-center gap-3">
+                        <WifiOff className="size-8 text-warning" />
+                        <p className="text-sm text-foreground font-medium">Nao foi possivel carregar as visitas.</p>
+                        <p className="text-xs text-muted-foreground">O servidor esta indisponivel. Verifique a conexao.</p>
+                        <Button variant="outline" size="sm" onClick={loadVisits} className="mt-2">
+                            <RefreshCw className="size-3.5 mr-2" />
+                            Tentar novamente
+                        </Button>
+                    </div>
                 ) : currentItems.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground bg-card border border-border rounded-xl">
                         Nenhuma visita encontrada.
@@ -368,6 +407,20 @@ export default function TabSummary() {
                             {loading ? (
                                 <tr>
                                     <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">Carregando dados...</td>
+                                </tr>
+                            ) : connectionError ? (
+                                <tr>
+                                    <td colSpan={7} className="px-6 py-12 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <WifiOff className="size-8 text-warning" />
+                                            <p className="text-sm text-foreground font-medium">Nao foi possivel carregar as visitas.</p>
+                                            <p className="text-xs text-muted-foreground">O servidor esta indisponivel. Verifique a conexao.</p>
+                                            <Button variant="outline" size="sm" onClick={loadVisits} className="mt-2">
+                                                <RefreshCw className="size-3.5 mr-2" />
+                                                Tentar novamente
+                                            </Button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ) : currentItems.length === 0 ? (
                                 <tr>

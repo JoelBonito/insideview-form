@@ -215,10 +215,7 @@ Before assigning agents, determine project type:
 
 ### Step 3: Task Format
 
-**Required fields:** `task_id`, `name`, `agent`, `skills`, `priority`, `dependencies`, `INPUT→OUTPUT→VERIFY`
-
-> [!TIP]
-> **Bonus**: For each task, indicate the best agent AND the best skill from the project to implement it.
+**Required fields:** `task_id`, `name`, `agent`, `priority`, `dependencies`, `INPUT→OUTPUT→VERIFY`
 
 > Tasks without verification criteria are incomplete.
 
@@ -264,7 +261,7 @@ Before assigning agents, determine project type:
 | **Success Criteria** | Measurable outcomes |
 | **Tech Stack** | Technologies with rationale |
 | **File Structure** | Directory layout |
-| **Task Breakdown** | All tasks with Agent + Skill recommendations and INPUT→OUTPUT→VERIFY |
+| **Task Breakdown** | All tasks with INPUT→OUTPUT→VERIFY |
 | **Phase X** | Final verification checklist |
 
 **EXIT GATE:**
